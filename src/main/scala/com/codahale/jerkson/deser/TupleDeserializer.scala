@@ -9,14 +9,18 @@ import com.fasterxml.jackson.databind.`type`.SimpleType
 import com.fasterxml.jackson.databind.JavaType
 import com.codahale.jerkson.ser.TupleSerializer
 
-class TupleDeserializer(javaType: JavaType) extends JsonDeserializer[Product] {
+class TupleDeserializer(javaType: JavaType, fallback: JsonDeserializer[Object]) extends JsonDeserializer[Object] {
   val types = for (i <- 0 until javaType.containedTypeCount()) yield javaType.containedType(i)
 
-  def deserialize(jp: JsonParser, ctxt: DeserializationContext): Product = {
-    if (jp.getCurrentToken != JsonToken.START_ARRAY) {
-      throw ctxt.mappingException("Tuple expected as an array")
+  def deserialize(jp: JsonParser, ctxt: DeserializationContext): Object = {
+    jp.getCurrentToken match {
+      case JsonToken.START_ARRAY => deserializeAsArray(jp, ctxt)
+      case JsonToken.START_OBJECT => fallback.deserialize(jp, ctxt)
+      case _ => throw ctxt.mappingException("Tuple expected as an array or object")
     }
+  }
 
+  def deserializeAsArray(jp: JsonParser, ctxt: DeserializationContext): Product = {
     val builder = collection.mutable.ListBuffer[Object]()
     
     for (t <- types) {

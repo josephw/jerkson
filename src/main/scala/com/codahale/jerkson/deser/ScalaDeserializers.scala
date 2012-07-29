@@ -90,7 +90,7 @@ class ScalaDeserializers(classLoader: ClassLoader, context: SetupContext) extend
     } else if (klass == classOf[Either[_,_]]) {
       new EitherDeserializer(config, javaType)
     } else if (TupleSerializer.allTupleClasses.exists(_.isAssignableFrom(beanDesc.getBeanClass()))) {
-      new TupleDeserializer(javaType)
+      new TupleDeserializer(javaType, new CaseClassDeserializer(config, javaType, classLoader))
     } else if (classOf[Product].isAssignableFrom(klass)) {
       new CaseClassDeserializer(config, javaType, classLoader)
     } else null

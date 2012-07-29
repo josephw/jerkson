@@ -36,6 +36,11 @@ class TupleSerializationSpec extends Spec {
     def errorWhenTooManyFieldsForTuple() = {
       Json.parse[(Int)]("[1,2]")
     }
+
+    @Test(expected = classOf[ParsingException])
+    def errorWhenNotAnArrayOrObject() = {
+      Json.parse[(Int)]("1")
+    }
   }
 
   class `Parses up to largest defined tuple` {
@@ -47,6 +52,16 @@ class TupleSerializationSpec extends Spec {
 
       Json.parse[(Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int, Int)](str).must(
           be(t))
+    }
+  }
+
+  class `Object representation is also parsed` {
+    @Test def parsedFromObjectRepresentationAllIntegers() = {
+      Json.parse[(Int, Int, Int)]("{ \"_1\": 1, \"_2\": 2, \"_3\": 3 }").must(be((1, 2, 3)))
+    }
+
+    @Test def parsedFromObjectRepresentation() = {
+      Json.parse[(Int, String, Double)]("{ \"_1\": 1, \"_2\": \"two\", \"_3\": 3.0 }").must(be((1, "two", 3.0)))
     }
   }
 }
